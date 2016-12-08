@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ namespace ExeBlocker
 {
     class Program
     {
+
+
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to ExeBlocker.");
@@ -20,7 +23,7 @@ namespace ExeBlocker
             switch (input)
             {
                 case 1:
-                    AddtoBlocklist();
+                    AddToBlocklist();
                     break;
                 case 2:
                     DeleteFromBlocklist();
@@ -37,9 +40,10 @@ namespace ExeBlocker
 
         }
 
-        public static void AddtoBlocklist()
+        public static void AddToBlocklist()
         {
             Console.WriteLine("Add to blocklist, write exe name and then press enter. When you want to stop write 1 and if you want to abort write 0");
+            CreateFolderAndFile();
             bool run = true;
             while (run);
             String userInput;
@@ -48,6 +52,7 @@ namespace ExeBlocker
             switch (userInput)
             {
                 case "0":
+                    run = false;
                     return;
                 case "1":
                     break;
@@ -55,6 +60,42 @@ namespace ExeBlocker
                     if (ExeNameChecker(userInput))
                         exes.Add(userInput);
                     break;
+            }
+        }
+
+        public static void AppendToBlocklist(List<string> list)
+        {
+            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
+            string filename = "blocklist.txt";
+            string fullpath = Path.Combine(directorypath, filename);
+
+            File.AppendAllLines(fullpath, list);
+        }
+
+        public static void ReadFromTextfile()
+        {
+            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
+            string filename = "blocklist.txt";
+
+            string fullpath = Path.Combine(directorypath, filename);
+            List<string> blocklist = File.ReadLines(fullpath).ToList();
+        }
+
+        public static void CreateFolderAndFile()
+        {
+            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
+            string filename = "blocklist.txt";
+
+            if ( !Directory.Exists(directorypath))
+            {
+                Directory.CreateDirectory(directorypath);
+            }
+
+            string fullpath = Path.Combine(directorypath, filename);
+
+            if (!File.Exists(fullpath))
+            {
+                File.Create(fullpath).Close(); // need to remember to close
             }
         }
 
@@ -111,7 +152,7 @@ namespace ExeBlocker
                 return false;
             }
             return true;
-        
 
+        }
     }
 }
