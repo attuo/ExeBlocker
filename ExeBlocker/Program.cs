@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,6 +39,16 @@ namespace ExeBlocker
 
             }
 
+        }
+
+        private static void DeleteAllFromBlocklist()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void DeleteFromBlocklist()
+        {
+            throw new NotImplementedException();
         }
 
         public static void AddToBlocklist()
@@ -99,12 +110,33 @@ namespace ExeBlocker
             }
         }
 
-        public static void Read(string keyName)
+        public static bool CheckIfThereIsKeyAndString(string keyName)
         {
-
+            string text;
+            RegistryKey baseRegistryKey = Registry.LocalMachine.OpenSubKey("Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options");
+            RegistryKey key = baseRegistryKey.OpenSubKey(keyName);
+            if (key != null)
+            {
+                try
+                {
+                    text = (string)key.GetValue("Debugger");
+                    if (text != null && text == "ntsd - c q")
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error" + e);
+                    return false;
+                }
+            }
+            return false;
         }
 
-        public static void Write(string keyName, object value)
+
+
+        public static void CreateKey(string keyName, object value)
         {
 
         }
