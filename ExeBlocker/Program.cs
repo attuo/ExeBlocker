@@ -14,6 +14,8 @@ namespace ExeBlocker
 
         static void Main(string[] args)
         {
+            // CheckDword()
+            // 
             Console.WriteLine("Welcome to ExeBlocker.");
             Console.WriteLine("Input 1 to add exe names you want to be blocked");
             Console.WriteLine("Input 2 to delete exe from a list");
@@ -54,7 +56,7 @@ namespace ExeBlocker
         public static void AddToBlocklist()
         {
             Console.WriteLine("Add to blocklist, write exe name and then press enter. When you want to stop write 1 and if you want to abort write 0");
-            CreateFolderAndFile();
+
             bool run = true;
             while (run);
             String userInput;
@@ -92,28 +94,16 @@ namespace ExeBlocker
             List<string> blocklist = File.ReadLines(fullpath).ToList();
         }
 
-        public static void CreateFolderAndFile()
+        public static void CreateDWORD()
         {
-            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
-            string filename = "blocklist.txt";
-
-            if ( !Directory.Exists(directorypath))
-            {
-                Directory.CreateDirectory(directorypath);
-            }
-
-            string fullpath = Path.Combine(directorypath, filename);
-
-            if (!File.Exists(fullpath))
-            {
-                File.Create(fullpath).Close(); // need to remember to close
-            }
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\CurrentVersion\\Policies");
+            baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.QWord);
         }
 
         public static bool CheckIfThereIsKeyAndString(string keyName)
         {
             string text;
-            RegistryKey baseRegistryKey = Registry.LocalMachine.OpenSubKey("Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\CurrentVersion\\Policies");
             RegistryKey key = baseRegistryKey.OpenSubKey(keyName);
             if (key != null)
             {
