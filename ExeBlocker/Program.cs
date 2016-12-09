@@ -11,7 +11,6 @@ namespace ExeBlocker
     class Program
     {
 
-
         static void Main(string[] args)
         {
             // CheckDword()
@@ -38,7 +37,6 @@ namespace ExeBlocker
                     Console.WriteLine("Wrong input");
                     Main(null);
                     break;
-
             }
 
         }
@@ -96,21 +94,23 @@ namespace ExeBlocker
 
         public static void CreateDWORD()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\CurrentVersion\\Policies");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
             baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.QWord);
         }
 
         public static bool CheckIfThereIsKeyAndString(string keyName)
         {
             string text;
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\CurrentVersion\\Policies");
-            RegistryKey key = baseRegistryKey.OpenSubKey(keyName);
-            if (key != null)
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
+            if (key == null)
             {
+                CreateKey("DisallowRun");
+            }
                 try
                 {
-                    text = (string)key.GetValue("Debugger");
-                    if (text != null && text == "ntsd - c q")
+                    text = (string)key.GetValue(keyName);
+                    if (text != null && text == keyName)
                     {
                         return true;
                     }
@@ -120,20 +120,25 @@ namespace ExeBlocker
                     Console.WriteLine("Error" + e);
                     return false;
                 }
-            }
             return false;
         }
 
 
 
-        public static void CreateKey(string keyName, object value)
+        public static void CreateKey(string keyName)
         {
-
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
+            if (key == null)
+            {
+                key.CreateSubKey(keyName);
+            }
         }
 
         public static void DeleteKey(string keyName)
         {
-
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            baseRegistryKey.DeleteValue(keyName);
         }
 
         public static int InputChecker(string input)
