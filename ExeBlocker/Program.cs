@@ -13,12 +13,21 @@ namespace ExeBlocker
 
         static void Main(string[] args)
         {
-            // CheckDword()
-            // 
             Console.WriteLine("Welcome to ExeBlocker.");
+            if (CheckIfThereIsDWORD() == false)
+            {
+                CreateDWORD();
+                Console.WriteLine("Creating DWORD");
+            }
+            if (CheckIfThereIsKey() == false) CreateKey();
+            if (IsBlockOn()) Console.WriteLine("Block is currenly on");
+            else Console.WriteLine("Block is currently off");
+
+
             Console.WriteLine("Input 1 to add exe names you want to be blocked");
-            Console.WriteLine("Input 2 to delete exe from a list");
+            Console.WriteLine("Input 2 to delete exe from blocklist");
             Console.WriteLine("Input 3 to delete all exes from blocklist");
+            Console.WriteLine("Input 4 to list all exes from blocklist");
             string userInput = Console.ReadLine();
             int input = InputChecker(userInput);
 
@@ -28,27 +37,96 @@ namespace ExeBlocker
                     AddToBlocklist();
                     break;
                 case 2:
-                    DeleteFromBlocklist();
+                    Console.WriteLine("Input exe name you want to remove from blocklist");
+                    string deleteInput = Console.ReadLine();
+                    if (ExeNameChecker(deleteInput) == true)
+                    {
+                        DeleteFromBlocklist(deleteInput);
+                    }
+
                     break;
                 case 3:
                     DeleteAllFromBlocklist();
+                    break;
+                case 4:
+                    ListAllFromBlocklist();
                     break;
                 default:
                     Console.WriteLine("Wrong input");
                     Main(null);
                     break;
             }
-
         }
 
         private static void DeleteAllFromBlocklist()
         {
-            throw new NotImplementedException();
+            object c;
+            Console.WriteLine("Are you sure to delete all exes from blocklist? Y/N");
+            c = Console.ReadKey();
+            string s = c.ToString();
+            switch (s)
+            {
+                case "y":
+                    RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+                    String[] array = baseRegistryKey.GetValueNames();
+                    foreach (String text in array)
+                    {
+                        baseRegistryKey.DeleteValue(text);
+                    }
+                    break;
+                case "n":
+                    Console.WriteLine("Returning to main menu");
+                    return;
+                default:
+                    Console.WriteLine("Press Y to delete all from blocklist or N to get back to main menu");
+                    break;
+            }
         }
 
-        private static void DeleteFromBlocklist()
+        private static void StopBlock()
         {
-            throw new NotImplementedException();
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            String[] array = baseRegistryKey.GetValueNames();
+            foreach(String text in array)
+            {
+                baseRegistryKey.SetValue(text, text + "*");
+            }
+        }
+
+        public static bool IsBlockOn()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            String[] array = baseRegistryKey.GetValueNames();
+            foreach (String text in array)
+            {
+                if(text.EndsWith("*"))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static void StartBlock()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            String[] array = baseRegistryKey.GetValueNames();
+            foreach (String text in array)
+            {
+                if(text.EndsWith("*"))
+                {
+                    baseRegistryKey.SetValue(text, text.Substring(0, text.Length - 1));
+                }
+            }
+        }
+
+        private static void DeleteFromBlocklist(String name)
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            if (name != null && name.Equals(baseRegistryKey.GetValue(name)))
+            {
+                baseRegistryKey.DeleteValue(name);
+            }
         }
 
         public static void AddToBlocklist()
@@ -74,68 +152,113 @@ namespace ExeBlocker
             }
         }
 
-        public static void AppendToBlocklist(List<string> list)
+        public static void ListAllFromBlocklist()
         {
-            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
-            string filename = "blocklist.txt";
-            string fullpath = Path.Combine(directorypath, filename);
-
-            File.AppendAllLines(fullpath, list);
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            String[] list = baseRegistryKey.GetSubKeyNames();
+            foreach (String a in list)
+            {
+                Console.WriteLine(a);
+            }
         }
 
-        public static void ReadFromTextfile()
-        {
-            string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
-            string filename = "blocklist.txt";
+        //public static void AppendToBlocklist(List<string> list)
+        //{
+        //    string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
+        //    string filename = "blocklist.txt";
+        //    string fullpath = Path.Combine(directorypath, filename);
 
-            string fullpath = Path.Combine(directorypath, filename);
-            List<string> blocklist = File.ReadLines(fullpath).ToList();
+        //    File.AppendAllLines(fullpath, list);
+        //}
+
+        //public static void ReadFromTextfile()
+        //{
+        //    string directorypath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDoc‌​uments), "ExeBlocker");
+        //    string filename = "blocklist.txt";
+
+        //    string fullpath = Path.Combine(directorypath, filename);
+        //    List<string> blocklist = File.ReadLines(fullpath).ToList();
+        //}
+
+        public static bool CheckIfThereIsDWORD()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            if (baseRegistryKey.GetValue("DisallowRun") != null) return true;
+            return false;
         }
 
         public static void CreateDWORD()
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
-            baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.QWord);
+            baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.DWord);
         }
 
-        public static bool CheckIfThereIsKeyAndString(string keyName)
+        public static bool CheckIfThereIsKey()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
+            if (key == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static bool CheckIfThereIsKeyString(string keyName)
         {
             string text;
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
-            if (key == null)
+            try
             {
-                CreateKey("DisallowRun");
+                text = (string)key.GetValue(keyName);
+                if (text != null && text == keyName) return true;
             }
-                try
-                {
-                    text = (string)key.GetValue(keyName);
-                    if (text != null && text == keyName)
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error" + e);
-                    return false;
-                }
+            catch (Exception e) {
+                Console.WriteLine("Error" + e);
+                return false;
+            }
             return false;
         }
 
+        //public static bool CheckIfThereIsKeyAndString(string keyName)
+        //{
+        //    string text;
+        //    RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+        //    RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
+        //    if (key == null)
+        //    {
+        //        CreateKey("DisallowRun");
+        //    }
+        //        try
+        //        {
+        //            text = (string)key.GetValue(keyName);
+        //            if (text != null && text == keyName)
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Console.WriteLine("Error" + e);
+        //            return false;
+        //        }
+        //    return false;
+        //}
 
 
-        public static void CreateKey(string keyName)
+
+        public static void CreateKey()
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             if (key == null)
             {
-                key.CreateSubKey(keyName);
+                key.CreateSubKey("DisallowRun");
             }
         }
 
-        public static void DeleteKey(string keyName)
+        public static void DeleteKeyString(string keyName)
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
             baseRegistryKey.DeleteValue(keyName);
