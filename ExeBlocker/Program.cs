@@ -189,7 +189,8 @@ namespace ExeBlocker
 
         public static void CreateDWORD()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            //var rs = new RegistryKey();
+            RegistryKey baseRegistryKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun", RegistryKeyPermissionCheck.ReadWriteSubTree);
             baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.DWord);
         }
 
