@@ -1,2 +1,4 @@
 # ExeBlocker
-Block the exe files you want from opening. 
+Makes a blocklist which block wanted exes from opening with efficient registry modification. 
+Console application at the moment, made with C# and only usable on Windows.
+Currently in development, not working yet completely.
