@@ -85,7 +85,7 @@ namespace ExeBlocker
 
         private static void StopBlock()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             String[] array = baseRegistryKey.GetValueNames();
             foreach(String text in array)
             {
@@ -95,7 +95,7 @@ namespace ExeBlocker
 
         public static bool IsBlockOn()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             String[] array = baseRegistryKey.GetValueNames();
             foreach (String text in array)
             {
@@ -109,7 +109,7 @@ namespace ExeBlocker
 
         private static void StartBlock()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             String[] array = baseRegistryKey.GetValueNames();
             foreach (String text in array)
             {
@@ -122,7 +122,7 @@ namespace ExeBlocker
 
         private static void DeleteFromBlocklist(String name)
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             if (name != null && name.Equals(baseRegistryKey.GetValue(name)))
             {
                 baseRegistryKey.DeleteValue(name);
@@ -133,28 +133,31 @@ namespace ExeBlocker
         {
             Console.WriteLine("Add to blocklist, write exe name and then press enter. When you want to stop write 1 and if you want to abort write 0");
 
-            bool run = true;
-            while (run);
-            String userInput;
-            userInput = Console.ReadLine();
             List<string> exes = new List<string>();
-            switch (userInput)
+            bool run = true;
+            while (run)
             {
-                case "0":
-                    run = false;
-                    return;
-                case "1":
-                    break;
-                default:
-                    if (ExeNameChecker(userInput))
-                        exes.Add(userInput);
-                    break;
+                String userInput;
+                userInput = Console.ReadLine();
+                
+                switch (userInput)
+                {
+                    case "0":
+                        run = false;
+                        return;
+                    case "1":
+                        break;
+                    default:
+                        if (ExeNameChecker(userInput))
+                            exes.Add(userInput);
+                        break;
+                }
             }
         }
 
         public static void ListAllFromBlocklist()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             String[] list = baseRegistryKey.GetSubKeyNames();
             foreach (String a in list)
             {
@@ -182,7 +185,7 @@ namespace ExeBlocker
 
         public static bool CheckIfThereIsDWORD()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             if (baseRegistryKey.GetValue("DisallowRun") != null) return true;
             return false;
         }
@@ -190,13 +193,14 @@ namespace ExeBlocker
         public static void CreateDWORD()
         {
             //var rs = new RegistryKey();
-            RegistryKey baseRegistryKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            RegistryKey baseRegistryKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\");
             baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.DWord);
+            baseRegistryKey.Close();
         }
 
         public static bool CheckIfThereIsKey()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             if (key == null)
             {
@@ -208,7 +212,7 @@ namespace ExeBlocker
         public static bool CheckIfThereIsKeyString(string keyName)
         {
             string text;
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             try
             {
@@ -251,7 +255,7 @@ namespace ExeBlocker
 
         public static void CreateKey()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             if (key == null)
             {
@@ -261,7 +265,7 @@ namespace ExeBlocker
 
         public static void DeleteKeyString(string keyName)
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
             baseRegistryKey.DeleteValue(keyName);
         }
 
