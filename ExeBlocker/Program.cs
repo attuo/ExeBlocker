@@ -13,21 +13,31 @@ namespace ExeBlocker
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to ExeBlocker.");
+            Console.WriteLine("Welcome to ExeBlocker!\n");
             if (CheckIfThereIsDWORD() == false)
             {
                 CreateDWORD();
                 Console.WriteLine("Creating DWORD");
             }
             if (CheckIfThereIsKey() == false) CreateKey();
-            if (IsBlockOn()) Console.WriteLine("Block is currenly on");
-            else Console.WriteLine("Block is currently off");
+            if (IsBlockOn()) Console.WriteLine("Block is currently on.\n");
+            else Console.WriteLine("Block is currently off.\n");
 
 
-            Console.WriteLine("Input 1 to add exe names you want to be blocked");
-            Console.WriteLine("Input 2 to delete exe from blocklist");
-            Console.WriteLine("Input 3 to delete all exes from blocklist");
-            Console.WriteLine("Input 4 to list all exes from blocklist");
+            MainMenu();
+            
+        }
+
+        public static void MainMenu()
+        {
+            Console.WriteLine("1) Add exe names you want to be blocked");
+            Console.WriteLine("2) List all exes from blocklist");
+            Console.WriteLine("3) Delete exe from blocklist");
+            Console.WriteLine("4) Delete all exes from blocklist");
+            Console.WriteLine("5) Start block");
+            Console.WriteLine("6) Stop block");
+            Console.WriteLine("7) Exit program");
+
             string userInput = Console.ReadLine();
             int input = InputChecker(userInput);
 
@@ -37,55 +47,72 @@ namespace ExeBlocker
                     AddToBlocklist();
                     break;
                 case 2:
-                    Console.WriteLine("Input exe name you want to remove from blocklist");
-                    string deleteInput = Console.ReadLine();
-                    if (ExeNameChecker(deleteInput) == true)
-                    {
-                        DeleteFromBlocklist(deleteInput);
-                    }
-
+                    Console.WriteLine("\nListing all open exes in blocklist:");
+                    ListAllFromBlocklist();
+                    Console.WriteLine("\n");
                     break;
                 case 3:
-                    DeleteAllFromBlocklist();
+                    Console.WriteLine("Input exe name you want to remove from blocklist");
+                    string deleteInput = Console.ReadLine();
+                    if (ExeNameChecker(deleteInput) != true || !CheckIfThereIsKeyString(deleteInput))
+                    {
+                        Console.WriteLine("There is no exe with that name in blocklist\n");
+                        Console.WriteLine("Back to main menu..\n\n");
+                        break;
+                    }
+                    DeleteFromBlocklist(deleteInput);
+                    Console.WriteLine("Exe deleted from blocklist\n");
                     break;
                 case 4:
-                    ListAllFromBlocklist();
+                    DeleteAllFromBlocklist();
+                    break;
+                case 5:
+                    StartBlock();
+                    Console.WriteLine("Block is now on");
+                    break;
+                case 6:
+                    StopBlock();
+                    Console.WriteLine("Block is now off");
+                    break;
+                case 7:
+                    Environment.Exit(0);
                     break;
                 default:
                     Console.WriteLine("Wrong input");
                     Main(null);
                     break;
             }
+            MainMenu();
         }
 
         private static void DeleteAllFromBlocklist()
         {
-            object c;
+            ConsoleKeyInfo c;
             Console.WriteLine("Are you sure to delete all exes from blocklist? Y/N");
             c = Console.ReadKey();
-            string s = c.ToString();
-            switch (s)
+            switch (c.KeyChar)
             {
-                case "y":
-                    RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\DisallowRun");
+                case 'y':
+                    RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
                     String[] array = baseRegistryKey.GetValueNames();
                     foreach (String text in array)
                     {
                         baseRegistryKey.DeleteValue(text);
                     }
+                    Console.WriteLine("\nExes deleted");
                     break;
-                case "n":
+                case 'n':
                     Console.WriteLine("Returning to main menu");
                     return;
                 default:
-                    Console.WriteLine("Press Y to delete all from blocklist or N to get back to main menu");
+                    Console.WriteLine("\nPress Y to delete all from blocklist or N to get back to main menu");
                     break;
             }
         }
 
         private static void StopBlock()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
             String[] array = baseRegistryKey.GetValueNames();
             foreach(String text in array)
             {
@@ -101,28 +128,28 @@ namespace ExeBlocker
             {
                 if(text.EndsWith("*"))
                 {
-                    return true;
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
 
         private static void StartBlock()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
             String[] array = baseRegistryKey.GetValueNames();
             foreach (String text in array)
             {
-                if(text.EndsWith("*"))
+                if(baseRegistryKey.GetValue(text).ToString().EndsWith("*"))
                 {
-                    baseRegistryKey.SetValue(text, text.Substring(0, text.Length - 1));
+                    baseRegistryKey.SetValue(text, text);
                 }
             }
         }
 
         private static void DeleteFromBlocklist(String name)
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
             if (name != null && name.Equals(baseRegistryKey.GetValue(name)))
             {
                 baseRegistryKey.DeleteValue(name);
@@ -146,6 +173,14 @@ namespace ExeBlocker
                         run = false;
                         return;
                     case "1":
+                        if (exes.Count == 0)
+                        {
+                            Console.WriteLine("You have not added any exe.");
+                            break;
+                        }
+                        CreateKeyStrings(exes);
+                        Console.WriteLine("Exes added to blocklist. Returning to main menu.");
+                        run = false;
                         break;
                     default:
                         if (ExeNameChecker(userInput))
@@ -153,12 +188,25 @@ namespace ExeBlocker
                         break;
                 }
             }
+            MainMenu();
+        }
+
+        public static void CreateKeyStrings(List<string> exelist)
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
+            foreach (string exeName in exelist)
+            {
+                if (ExeNameChecker(exeName) == true && CheckIfThereIsKeyString(exeName) == false)
+                {
+                    baseRegistryKey.SetValue(exeName, exeName, RegistryValueKind.String);
+                }
+            }
         }
 
         public static void ListAllFromBlocklist()
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun");
-            String[] list = baseRegistryKey.GetSubKeyNames();
+            String[] list = baseRegistryKey.GetValueNames();
             foreach (String a in list)
             {
                 Console.WriteLine(a);
@@ -193,7 +241,7 @@ namespace ExeBlocker
         public static void CreateDWORD()
         {
             //var rs = new RegistryKey();
-            RegistryKey baseRegistryKey = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\");
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.DWord);
             baseRegistryKey.Close();
         }
@@ -259,7 +307,7 @@ namespace ExeBlocker
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             if (key == null)
             {
-                key.CreateSubKey("DisallowRun");
+                key.CreateSubKey("DisallowRun", RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
         }
 
