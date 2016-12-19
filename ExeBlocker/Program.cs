@@ -54,7 +54,7 @@ namespace ExeBlocker
                 case 3:
                     Console.WriteLine("Input exe name you want to remove from blocklist");
                     string deleteInput = Console.ReadLine();
-                    if (ExeNameChecker(deleteInput) != true || !CheckIfThereIsKeyString(deleteInput))
+                    if (!CheckIfThereIsKeyString(deleteInput))
                     {
                         Console.WriteLine("There is no exe with that name in blocklist\n");
                         Console.WriteLine("Back to main menu..\n\n");
@@ -150,7 +150,7 @@ namespace ExeBlocker
         private static void DeleteFromBlocklist(String name)
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\DisallowRun", true);
-            if (name != null && name.Equals(baseRegistryKey.GetValue(name)))
+            if (name != null)
             {
                 baseRegistryKey.DeleteValue(name);
             }
@@ -259,18 +259,17 @@ namespace ExeBlocker
 
         public static bool CheckIfThereIsKeyString(string keyName)
         {
-            string text;
+            string[] keyStringNames;
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
-            try
+
+            keyStringNames = key.GetValueNames();
+            if (keyStringNames != null) { 
+            foreach (string name in keyStringNames)
             {
-                text = (string)key.GetValue(keyName);
-                if (text != null && text == keyName) return true;
+                    if (keyName.Equals(name)) return true;
             }
-            catch (Exception e) {
-                Console.WriteLine("Error" + e);
-                return false;
-            }
+        }
             return false;
         }
 
