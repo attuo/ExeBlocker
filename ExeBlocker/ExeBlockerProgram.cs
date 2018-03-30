@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 namespace ExeBlocker
 {
+    // @TODO: Make GUI for the program 
+    // @TODO: Refactor code alot
 
     /// <summary>
     /// Creates a key in regedit where exe names will be added. By doing so, program can be used to block 
@@ -11,28 +13,33 @@ namespace ExeBlocker
     /// when block is on. When user tries to open blocked exe Windows will display error popup: "This operation
     /// has been cancelled due to restrictions in effect on this computer. Please contact your system administrator".
     /// Currently the whole program is in same class.
-    /// 
-    /// TODO: Make GUI for the program 
     /// </summary>
     public class ExeBlockerProgram
     {
 
-        const string baseRegistryKeyPath = "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer";
+        const string expRegKeyPath = "Software\\Microsoft\\Windows\\CurrentVersion\\Policies";
+        const string baseRegistryKeyPath = expRegKeyPath + "\\Explorer";
+        
         const string keyStringPath = "\\DisallowRun";
 
         /// <summary>
         /// When program stars, creates DWORD in registry and tells block status and opens main menu.
-        /// TODO: Make string[] args to work, so you can add and start.
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
+            if (!CheckIfThereIsExplorerKey())
+            {
+                CreateExplorerKey();
+                Console.WriteLine("Creating Explorer Key");
+            }
             if (CheckIfThereIsDWORD() == false)
             {
                 CreateDWORD();
                 Console.WriteLine("Creating DWORD");
             }
-            if (CheckIfThereIsKey() == false) CreateKey();
+            if (!CheckIfThereIsKey()) CreateKey();
+
             if (args.Length == 1 && "start".Equals(args[0]))
               {
                 StartBlock();
@@ -59,6 +66,29 @@ namespace ExeBlocker
             MainMenu();            
         }
 
+        /// <summary>
+        /// Checks if the needed Explorer subkey is in registry.
+        /// </summary>
+        /// <returns>True if it is already made</returns>
+        public static bool CheckIfThereIsExplorerKey()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(expRegKeyPath);
+            if (baseRegistryKey != null && baseRegistryKey.GetValue("Explorer") != null) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Creates a subkey for Explorer.
+        /// </summary>
+        public static void CreateExplorerKey()
+        {
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(expRegKeyPath, true);
+            RegistryKey key = baseRegistryKey.OpenSubKey("Explorer");
+            if (key == null)
+            {
+                baseRegistryKey.CreateSubKey("Explorer", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            }
+        }
 
         /// <summary>
         /// Checks if the needed DWORD is in registry.
@@ -67,7 +97,7 @@ namespace ExeBlocker
         public static bool CheckIfThereIsDWORD()
         {
             RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath);
-            if (baseRegistryKey.GetValue("DisallowRun") != null) return true;
+            if (baseRegistryKey != null && baseRegistryKey.GetValue("DisallowRun") != null) return true;
             return false;
         }
 
@@ -78,7 +108,7 @@ namespace ExeBlocker
         public static void CreateDWORD()
         {
             //var rs = new RegistryKey();
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath);
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath, true);
             baseRegistryKey.SetValue("DisallowRun", "1", RegistryValueKind.DWord);
             baseRegistryKey.Close();
         }
@@ -89,11 +119,11 @@ namespace ExeBlocker
         /// </summary>
         public static void CreateKey()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath);
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath, true);
             RegistryKey key = baseRegistryKey.OpenSubKey("DisallowRun");
             if (key == null)
             {
-                key.CreateSubKey("DisallowRun", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                baseRegistryKey.CreateSubKey("DisallowRun", RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
         }
 
