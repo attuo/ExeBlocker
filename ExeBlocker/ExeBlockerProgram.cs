@@ -72,8 +72,8 @@ namespace ExeBlocker
         /// <returns>True if it is already made</returns>
         public static bool CheckIfThereIsExplorerKey()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(expRegKeyPath);
-            if (baseRegistryKey != null && baseRegistryKey.GetValue("Explorer") != null) return true;
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath);
+            if (baseRegistryKey != null) return true;
             return false;
         }
 
@@ -96,8 +96,8 @@ namespace ExeBlocker
         /// <returns>True if it is already made</returns>
         public static bool CheckIfThereIsDWORD()
         {
-            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath);
-            if (baseRegistryKey != null && baseRegistryKey.GetValue("DisallowRun") != null) return true;
+            RegistryKey baseRegistryKey = Registry.CurrentUser.OpenSubKey(baseRegistryKeyPath + "\\DisallowRun");
+            if (baseRegistryKey != null) return true;
             return false;
         }
 
